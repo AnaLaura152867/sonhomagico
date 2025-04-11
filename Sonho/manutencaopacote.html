@@ -1,0 +1,143 @@
+<?php
+// Conexão com o banco
+$host = "sql311.infinityfree.com";
+$usuario = "if0_38727661";
+$senha = "SUA_SENHA_AQUI"; // Substitua pela senha correta
+$banco = "if0_38727661_eventos";
+$conn = new mysqli($host, $usuario, $senha, $banco);
+if ($conn->connect_error) {
+    die("Erro de conexão: " . $conn->connect_error);
+}
+
+// Variáveis para preencher os campos
+$id = $quantidade = $segsex = $fds = "";
+
+// Se estiver editando (ID na URL)
+if (isset($_GET['id'])) {
+    $id = intval($_GET['id']);
+    $sql = "SELECT * FROM pacotes WHERE id = $id";
+    $resultado = $conn->query($sql);
+    if ($resultado && $resultado->num_rows > 0) {
+        $linha = $resultado->fetch_assoc();
+        $quantidade = $linha['qtd_convidados'];
+        $segsex = $linha['valor_semana'];
+        $fds = $linha['valor_fds'];
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro/Alteração de Pacote - Sonho Mágico</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(135deg, #f6bcd3, #b2ebf2);
+      color: #444;
+    }
+
+    header {
+      background: rgba(255,255,255,0.6);
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      position: absolute;
+      left: 20px;
+      top: 10px;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+    }
+
+    h1 {
+      font-size: 32px;
+      color: #87cfe3;
+    }
+
+    main {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: rgba(255,255,255,0.9);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 5px;
+    }
+
+    button {
+      margin-top: 25px;
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      background-color: #a8e6cf;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #93d9c0;
+    }
+
+    .back-button {
+      display: block;
+      margin-top: 30px;
+      text-align: center;
+      color: #666;
+      text-decoration: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="sonho.jpg" alt="Logo" class="logo">
+  <h1>Cadastro de Pacote</h1>
+</header>
+
+<main>
+  <form action="gravar_pacote.php" method="POST">
+    <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
+
+    <label for="quantidade">Quantidade de convidados</label>
+    <input type="text" id="quantidade" name="quantidade" value="<?= htmlspecialchars($quantidade) ?>" required>
+
+    <label for="segsex">Valor Seg a Sex (R$)</label>
+    <input type="number" step="0.01" id="segsex" name="segsex" value="<?= htmlspecialchars($segsex) ?>" required>
+
+    <label for="fds">Valor Sáb, Dom e Feriados (R$)</label>
+    <input type="number" step="0.01" id="fds" name="fds" value="<?= htmlspecialchars($fds) ?>" required>
+
+    <button type="submit">Salvar</button>
+  </form>
+
+  <a href="pacotes.php" class="back-button">Voltar</a>
+</main>
+
+</body>
+</html>
+<?php $conn->close(); ?>
