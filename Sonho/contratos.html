@@ -1,78 +1,226 @@
+<?php
+$host = "sql311.infinityfree.com";
+$user = "if0_38727661";
+$password = "sua_senha_aqui"; // Coloque sua senha correta
+$db = "if0_38727661_eventos";
+
+$conn = new mysqli($host, $user, $password, $db);
+if ($conn->connect_error) {
+    die("Conexão falhou: " . $conn->connect_error);
+}
+
+$sql = "SELECT o.id, o.data, o.hora, p.qtd_convidados, p.valor_semana, p.valor_fds, o.valor_total,
+        GROUP_CONCAT(a.nome SEPARATOR ', ') AS adicionais,
+        IFNULL(SUM(pg.valor), 0) AS total_pago
+        FROM orcamentos o
+        LEFT JOIN pacotes p ON o.id_pacote = p.id
+        LEFT JOIN orcamento_adicional oa ON oa.id_orcamento = o.id
+        LEFT JOIN adicionais a ON a.id = oa.id_adicional
+        LEFT JOIN pagamentos pg ON pg.id_orcamento = o.id
+        WHERE o.fechado = 1
+        GROUP BY o.id";
+
+$result = $conn->query($sql);
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Contrato</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <meta charset="UTF-8" />
+  <title>Contratos</title>
   <style>
     body {
-      background-color: #f4f6f9;
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(135deg, #f6bcd3, #b2ebf2);
+      color: #87cfe3;
+    }
+
+    header {
+      background: rgba(255, 255, 255, 0.6);
       padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    .container {
-      max-width: 900px;
+
+    nav {
+      display: flex;
+      gap: 40px;
     }
-    .card {
-      margin-bottom: 20px;
+
+    .menu {
+      position: relative;
     }
-    .valor {
-      font-size: 1.2rem;
+
+    .menu > a {
+      color: #87cfe3;
+      text-decoration: none;
+      font-size: 20px;
       font-weight: bold;
+      padding: 8px;
+    }
+
+    .submenu {
+      display: none;
+      position: absolute;
+      background-color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      top: 100%;
+      left: 0;
+      border-radius: 10px;
+      z-index: 1000;
+    }
+
+    .submenu a {
+      color: #555;
+      padding: 10px 15px;
+      text-decoration: none;
+      display: block;
+      border-bottom: 1px solid #eee;
+    }
+
+    .submenu a:hover {
+      background-color: #f6bcd3;
+    }
+
+    .menu:hover .submenu {
+      display: block;
+    }
+
+    .logo {
+      position: absolute;
+      left: 20px;
+      top: 10px;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+    }
+
+    main {
+      padding: 40px 30px;
+      max-width: 1200px;
+      margin: 30px auto;
+      background-color: rgba(255,255,255,0.8);
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 40px;
+      color: #87cfe3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f6bcd3;
+      color: #444;
+    }
+
+    .btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .btn-pagar {
+      background-color: #a8e6cf;
+    }
+
+    .btn-pagar:hover {
+      background-color: #93d9c0;
+    }
+
+    .btn-voltar {
+      margin-top: 20px;
+      background-color: #87cfe3;
+    }
+
+    .btn-voltar:hover {
+      background-color: #6ac0d5;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2 class="mb-4">Contrato</h2>
-
-    <div class="card p-3">
-      <h5>Resumo do Contrato</h5>
-      <p><strong>Valor Total:</strong> R$ <span id="valorTotal">1200,00</span></p>
-      <p><strong>Entrada (30%):</strong> R$ <span id="entrada">360,00</span></p>
-      <p><strong>Valor Já Pago:</strong> R$ <span id="valorPago">400,00</span></p>
-      <p><strong>Valor Restante:</strong> R$ <span id="valorRestante">800,00</span></p>
-    </div>
-
-    <div class="card p-3">
-      <h5>Itens Inclusos</h5>
-      <p><strong>Pacote:</strong> Pacote 30 convidados - R$800,00</p>
-      <p><strong>Adicionais:</strong></p>
-      <ul>
-        <li>Pipoca - R$200,00</li>
-        <li>Algodão doce - R$200,00</li>
-      </ul>
-    </div>
-
-    <div class="card p-3">
-      <h5>Pagamentos Realizados</h5>
-      <table class="table table-bordered">
-        <thead class="table-light">
-          <tr>
-            <th>Data</th>
-            <th>Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>11/04/2025</td>
-            <td>R$ 400,00</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="card p-3">
-      <h5>Adicionar Novo Pagamento</h5>
-      <form action="adicionar_pagamento.php" method="post">
-        <input type="hidden" name="id_orcamento" value="1">
-        <div class="mb-3">
-          <label for="valor" class="form-label">Valor Pago</label>
-          <input type="number" name="valor" id="valor" class="form-control" step="0.01" required>
+  <header>
+    <img src="logo.png" alt="Logo" class="logo">
+    <nav>
+      <div class="menu"><a href="inicial.php">Início</a></div>
+      <div class="menu"><a href="#">Cadastros</a>
+        <div class="submenu">
+          <a href="pacotes.php">Pacotes</a>
+          <a href="adicionais.php">Adicionais</a>
+          <a href="colaboradores.php">Colaboradores</a>
         </div>
-        <button type="submit" class="btn btn-success">Registrar Pagamento</button>
-        <a href="inicial.php" class="btn btn-secondary">Voltar</a>
-      </form>
+      </div>
+      <div class="menu"><a href="orcamentos.php">Orçamentos</a></div>
+      <div class="menu"><a href="contratos.php">Contratos</a></div>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Contratos</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Data</th>
+          <th>Hora</th>
+          <th>Pacote</th>
+          <th>Adicionais</th>
+          <th>Valor Total</th>
+          <th>Valor Pago</th>
+          <th>Falta Pagar</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php while($row = $result->fetch_assoc()): 
+            $falta = $row['valor_total'] - $row['total_pago'];
+        ?>
+        <tr>
+          <td><?= $row['id'] ?></td>
+          <td><?= date('d/m/Y', strtotime($row['data'])) ?></td>
+          <td><?= $row['hora'] ?></td>
+          <td><?= $row['qtd_convidados'] ?> convidados</td>
+          <td><?= $row['adicionais'] ?></td>
+          <td>R$ <?= number_format($row['valor_total'], 2, ',', '.') ?></td>
+          <td>R$ <?= number_format($row['total_pago'], 2, ',', '.') ?></td>
+          <td>R$ <?= number_format($falta, 2, ',', '.') ?></td>
+          <td>
+            <a href="registrar_pagamento.php?id_orcamento=<?= $row['id'] ?>">
+              <button class="btn btn-pagar">Registrar Pagamento</button>
+            </a>
+          </td>
+        </tr>
+        <?php endwhile; ?>
+      </tbody>
+    </table>
+
+    <div style="text-align: center;">
+      <a href="inicial.php"><button class="btn btn-voltar">Voltar</button></a>
     </div>
-  </div>
+  </main>
 </body>
 </html>
